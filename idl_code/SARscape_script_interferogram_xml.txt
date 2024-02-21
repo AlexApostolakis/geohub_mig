@@ -1,0 +1,14 @@
+doppler_rg_poly_degree
+doppler_az_poly_number
+cc_number_res_coeff_range
+cc_number_res_coeff_azimuth
+cc_init_range_win_size
+cc_init_azimuth_win_size
+cc_range_win_number_cc
+cc_azimuth_win_number_cc
+cc_azimuth_win_size_cc
+cc_oversampling_cc
+cc_range_win_number_fine
+cc_azimuth_win_number_fine
+rg_looks_nbr
+az_looks_nbr

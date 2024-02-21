@@ -1,0 +1,15 @@
+General Workflow
+..\Workflow.png
+1) SARscape_script_import_Sentinel_1_master.pro
+2) SARscape_script_dem_extraction.pro
+3) SARscape_script_import_Sentinel_1_slave.pro
+4) sarscape_script_interferogram.pro
+4(a) sarscape_script_baseline_estimation.pro
+5) sarscape_script_adapt_filt_coh_gen.pro
+6) sarscape_script_geocoding_rad_cal.pro
+6(a) sarscape_script_phase_unwrapping.pro
+7) sarscape_script_EXPORTING_TO_KML.pro
+sarscape_script_automatic_gcp_computation
+8) sarscape_script_interferogram_refinement.pro
+9) sarscape_script_displacement_and_geocoding.pro
+10) sarscape_script_EXPORTING_TO_KML.pro

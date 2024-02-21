@@ -1,0 +1,74 @@
+ALTER TABLE service_output ALTER COLUMN id SET DEFAULT nextval('output_id_seq');
+
+ALTER TABLE steps ALTER COLUMN id DROP DEFAULT;
+
+select service_id,inp[1],sensing_start from (select service_id,regexp_split_to_array(inputs, ',') inp from service_output) 
+outs right join satellite_input i on outs.inp[1] = i.name where outs.service_id=17 order by sensing_start
+
+#select all inputs of a service id
+select outs.sid, outs.inp, si.id from satellite_input si join
+(select service_id sid, (regexp_split_to_array(inputs, ','))[1] inp from service_output so) outs
+on outs.inp=si.product_id
+where outs.sid=70
+union
+select outs.sid, outs.inp, si.id from satellite_input si join
+(select service_id sid, (regexp_split_to_array(inputs, ','))[2] inp from service_output so) outs
+on outs.inp=si.product_id 
+where outs.sid=70
+
+select hub, count(*) from 
+(select substring(message from '(?<=downloading ).+?(?=dhus)') hub from steps_log where message like 'Start downloading%') hubs
+group by hubs.hub
+
+
+INSERT INTO service_request(id, name, date, magnitude, epicenter, epicenter_depth, status, request_date,
+  search_poly, priority, request_params, last_check)
+SELECT * FROM dblink('user=postgres password=eq@ut01fg1 dbname=autoifg_prod', 'SELECT * FROM service_request where id=197') as  x(id integer,
+  name character varying(200),
+  date timestamp without time zone,
+  magnitude real,
+  epicenter character varying(100),
+  epicenter_depth real,
+  status character varying(20),
+  request_date timestamp without time zone,
+  search_poly geometry(Polygon,4326),
+  priority integer,
+  request_params text,
+  last_check timestamp without time zone)
+
+INSERT INTO service_output(service_id, inputs, id, output_status, type, priority, params)
+SELECT * FROM dblink('user=postgres password=eq@ut01fg1 dbname=autoifg', 'SELECT * FROM service_output where service_id=33') as  x(service_id integer,
+  inputs text,
+  id integer,
+  magnitude real,
+  output_status character varying(20),
+  type character varying(20),
+  priority integer,
+  params text)
+  
+create table steps_prod as 
+SELECT * FROM dblink('user=postgres password=eq@ut01fg1 dbname=autoifg', 'SELECT * FROM steps_prod') as  x(id integer,
+  name character varying(100),
+  command character varying(150),
+  params text,
+  type character varying(20),
+  prereq_steps character varying(30),
+  resource character varying(20),
+  activated boolean,
+  meantime interval)
+  
+#update steps_execution with service_id 
+update steps_execution se set status='reset'
+from service_output so where se.output_id=so.id and so.service_id=1144 and se.status = 'cancelled'
+
+#Average duration interferograms
+select avg(duration), count(duration) ifg_count, extract(month from start_time) month_of_year, extract(year from start_time) as year from steps_exec where step_id=50 group by month_of_year,year order by year, month_of_year
+
+#select published events 
+select distinct sr.id, name, date, magnitude, epicenter from service_request sr join service_output so on sr.id=so.service_id join steps_execution se on se.output_id=so.id where sr.status in ('ready','processing') and step_id=95 and se.end_time is not null
+
+select output_id, step_id, string_agg(rm[1], ', ') from 
+(SELECT output_id, step_id, regexp_matches(string_agg(message, ', '), '(?<=https:\/\/).*?(?=\/)','g') rm, string_agg(message, ', ') sa, string_agg(status, ', ')
+FROM steps_log
+GROUP BY output_id, step_id having string_agg(message, ', ') like '%Faster%' and string_agg(status, ', ') not like '%cancelled%') agg 
+group by output_id, step_id having string_agg(rm[1], ', ') not like '%sent%'

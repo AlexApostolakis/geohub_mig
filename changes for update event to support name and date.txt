@@ -1,0 +1,21 @@
+Changes for updating event so name, date changes to be supported
+eventdetection
+1. Delete "if" condition in event detection line 156
+service event
+2. add function get_event_record
+3. replace function init_detected_event
+4. replace function get_eventname
+5. add evenid key to be returned in get_output_config
+environment
+6. load tag eventid in line 137 and add tag #Event ID# to ifgconfig.ini
+publishing
+7. add eventid in publishing __init__ params, add self.eventid and add tag in publishing step
+8. replace get_eventdata
+9. replace publishtowebdb
+10. if copyfiles or ftpfiles line 295 (optional)
+webdbinterface
+11. replace insert_pub_event
+12. replace getEventID
+13. insert update_pub_event
+steps
+14. Update publish step add #Event ID# in call parameters

@@ -1,0 +1,3 @@
+.COMPILE 'C:\Andreas\Andreas_Testing\code_v2\sarscape_script_adapt_filt_coh_gen.pro'
+sarscape_script_adapt_filt_coh_gen
+exit

@@ -1,0 +1,3 @@
+.COMPILE 'C:\Andreas\Andreas_Testing\code_v2\sarscape_script_displacement_and_geocoding.pro'
+sarscape_script_displacement_and_geocoding
+exit

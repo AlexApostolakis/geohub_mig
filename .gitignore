@@ -1,0 +1,6 @@
+.project
+.pydevproject
+.settings
+*.pyc
+idl_code/.metadata
+idl_code/Default

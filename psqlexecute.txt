@@ -1,0 +1,1 @@
+C:\Program Files\PostgreSQL\9.6\bin\psql -U postgres -d autoifg_prod -f C:\Users\arcgisadmin\eclipse_projects\autoifg\plsqlnewsteps.sql
