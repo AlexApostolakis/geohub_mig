@@ -1478,7 +1478,7 @@ class servicerequest:
             ptracer=ProductTracer(self.env,self.log)
             self.log.info("Estimate ingestion delay\n")
             lastproducts=[]
-            lastproducts=ptracer.product_seeker(datetime.utcnow()-timedelta(minutes=15),datetime.utcnow(),self.env.ifg_filters+namefilter,datesearch="ingestiondate")
+            lastproducts=ptracer.product_seeker(datetime.utcnow()-timedelta(minutes=60),datetime.utcnow(),self.env.ifg_filters+namefilter,datesearch="ingestiondate")
             if method==1 and len(lastproducts)>0:
                 if len(lastproducts)>0:
                     delaysecs=0
@@ -1562,9 +1562,9 @@ class servicerequest:
         for hub in self.env.colhubs:
             # ~~~ FIX ~~~ 
             # Added sentinel in the call function for clarity and traceability
-            hubentries=ptracer.product_seeker(period_from,period_to,self.env.ifg_filters+orbitfilter,roi,hubs=[hub])
+            hubentries=ptracer.product_seeker(period_from,period_to,self.env.ifg_filters,roi,hubs=[hub])
             self.alog.update_server_status('Server running')
-            filtentries=self.filter_masters(hubentries)
+            filtentries=self.filter_masters(hubentries, orbitfilter)
             for newentry in filtentries:
                 if not any(entry['id']==newentry['id'] for entry in entries):
                     entries.append(newentry)
@@ -1606,7 +1606,7 @@ class servicerequest:
         roi=self.sr['roi']
 
         try :
-            orbitfilter=''
+            orbitfilter=[]
 
             period_to=self.sr['date']-timedelta(days=(mostrecentperiod+pastperiod-1)*repassing)
             period_from=self.sr['date']-timedelta(days=(mostrecentperiod+pastperiod)*repassing)
@@ -1614,6 +1614,9 @@ class servicerequest:
             for period in range(1,self.env.ifg_searchperiods+1):
                 entries += self.masters_seeker(ptracer,period,period_from,period_to,orbitfilter,roi)
                 
+                for entry in entries:
+                    if entry['Relative orbit'] not in orbitfilter:
+                        orbitfilter.append(entry['Relative orbit'])
                 '''
                 commented out to use open search
                 for entry in entries:
@@ -1632,7 +1635,6 @@ class servicerequest:
         '''
         Seeks 'slave' imagery for a specific time period in all specified sentinel hubs 
         '''
-        print("FINDING SLAVES")
         slave_entries=[]
         self.log.info("\n")
         self.log.info("Search for candidate slaves %s-seismic from %s to %s\n"%(preco,searchfrom,searchto))
@@ -1643,7 +1645,6 @@ class servicerequest:
             for newentry in filtentries:
                 if not any(slave_entry['id']==newentry['id'] for slave_entry in slave_entries):
                     slave_entries.append(newentry)
-        print(slave_entries)
         return slave_entries
     
     def find_slaves(self,masterentry,ptracer):
@@ -1668,7 +1669,6 @@ class servicerequest:
             searchto_co=searchtime+timedelta(minutes = self.env.ifg_tilesearchrange)
             slaves_co=[]
             while len(slaves_co)==0 and searchfrom_co<datetime.utcnow():
-                print(sensingstart)
                 slaves_co=self.slaves_seeker(masterentry,ptracer,orbitfilter,'co',searchfrom_co,searchto_co)
                 searchfrom_co+=timedelta(days = repassperiods*repassdays)
                 searchto_co+=timedelta(days = repassperiods*repassdays)
@@ -1765,7 +1765,7 @@ class servicerequest:
         return orbits
     
 
-    def filter_masters(self,entries):
+    def filter_masters(self,entries, orbitfilter=[]):
         '''
         Filter master entries older than existing in same orbit and masters that have small intersection with roi 
         '''
@@ -1779,6 +1779,10 @@ class servicerequest:
             filteredentries=[]
             for entry in entries:
                 append_entry=True
+                
+                for orbit in orbitfilter:
+                    if entry['Relative orbit']==orbit:
+                        append_entry=False
                 
                 #filter out older than existing master in same orbit
                 '''
@@ -1954,9 +1958,6 @@ class servicerequest:
             try :
                 pairs = self.find_slaves(entry,ptracer)
                 for pair in pairs:
-                    print()
-                    print("~~~~SLAVE PAIR~~~")
-                    print(pair)
                     self.store_output(entry, pair)
                     
             except:

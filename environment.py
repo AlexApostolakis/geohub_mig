@@ -58,7 +58,6 @@ class Environment(object):
             i=1;self.colhubs=[]
             hubskey='hubs'+str(i)
             while hubskey in Copernicushubs:
-                print(json.loads(Copernicushubs[hubskey]))
                 self.colhubs+=json.loads(Copernicushubs[hubskey])
                 i+=1
                 hubskey='hubs'+str(i)

@@ -50,10 +50,9 @@ def parse_opensearch(_input):
         'swath': 'Instrument swath'
         }
     
-    dicte = {}
     liste = []
-        
     for product in _input:
+        dicte={}
         for k in product:
             if k == 'id':
                 dicte[map_schema[k]] = str(product['id'])
@@ -63,19 +62,16 @@ def parse_opensearch(_input):
                 size = check.get('download').get('size')
                 #print(type(size))
                 dicte[map_schema['size']] = size
-            if k in map_schema.keys():  
+            if k in map_schema.keys():
                 dicte[map_schema[k]] = str(product['properties'][k])
+            
                 
         polygon = ogr.CreateGeometryFromGML(dicte['GML footprint'])
         dicte['WKT footprint']=polygon.ExportToWkt()
+        if dicte['Name'][-5:]=='.SAFE':
+            dicte['Name']=dicte['Name'][:-5]
         liste.append(dicte)
     return liste
-'''    for i in liste:
-        print(i)
-        for k, v in dicte.items():
-            print("{}: {}".format(k, v))
-'''
-
 
 def parse_safe(_input):
     entries = {}
@@ -91,11 +87,6 @@ def parse_safe(_input):
     entries.update(get_platform(root))
     entries.update(get_orbit(root))
     entries.update(get_standalone_product(root))
-    
-    '''
-    for key in entries:
-        print "%s : %s"%(key, entries[key])
-    '''
     
     return entries
     
